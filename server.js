@@ -1,5 +1,4 @@
- 
-import 'dotenv/config';
+ import 'dotenv/config';
 import express from 'express';
 import { rateLimit } from 'express-rate-limit';
 import path from 'node:path';
@@ -119,7 +118,8 @@ app.post('/api/chat', async (req, res) => {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
 
-  const maxAttempts = 3;
+  // Thử lại tối đa 4 lần khi Gemini quá tải hoặc giới hạn tốc độ.
+  const maxAttempts = 4;
   const retryableStatuses = [429, 500, 502, 503, 504];
 
   try {
@@ -154,12 +154,43 @@ app.post('/api/chat', async (req, res) => {
         break;
       }
 
+      // Ưu tiên thời gian chờ Google gửi trong header Retry-After.
+      let retryDelayMs = 0;
+      const retryAfter = upstream.headers.get('retry-after');
+
+      if (retryAfter) {
+        const seconds = Number(retryAfter);
+
+        if (Number.isFinite(seconds) && seconds > 0) {
+          retryDelayMs = seconds * 1000;
+        } else {
+          const retryDate = Date.parse(retryAfter);
+
+          if (Number.isFinite(retryDate)) {
+            retryDelayMs = Math.max(0, retryDate - Date.now());
+          }
+        }
+      }
+
+      // Nếu không có Retry-After, dùng thời gian chờ tăng dần.
+      if (retryDelayMs <= 0) {
+        const backoffMs = Math.min(
+          2000 * (2 ** (attempt - 1)),
+          15000
+        );
+
+        retryDelayMs = backoffMs + Math.floor(Math.random() * 1000);
+      }
+
+      // Không chờ quá lâu trong một request.
+      retryDelayMs = Math.min(retryDelayMs, 20000);
+
       console.warn(
-        `Gemini báo lỗi ${upstream.status}. Đang thử lại lần ${attempt + 1}/${maxAttempts}.`
+        `Gemini báo lỗi ${upstream.status}. Thử lại ${attempt + 1}/${maxAttempts} sau ${retryDelayMs}ms.`
       );
 
       await new Promise(resolve =>
-        setTimeout(resolve, attempt * 1500)
+        setTimeout(resolve, retryDelayMs)
       );
     }
 
@@ -184,9 +215,15 @@ app.post('/api/chat', async (req, res) => {
         });
       }
 
-      if (upstream.status === 429 || upstream.status === 503) {
-        return res.status(502).json({
-          error: 'Gemini đang quá tải hoặc đã đạt giới hạn yêu cầu. Vui lòng thử lại sau.'
+      if (upstream.status === 429) {
+        return res.status(429).json({
+          error: 'Gemini đang giới hạn số yêu cầu (429). Hãy đợi một chút rồi thử lại; nếu lỗi kéo dài, cần kiểm tra quota và giới hạn API.'
+        });
+      }
+
+      if (upstream.status === 503) {
+        return res.status(503).json({
+          error: 'Gemini hiện đang quá tải (503). PEAK đã thử kết nối lại nhưng chưa thành công. Vui lòng thử lại sau.'
         });
       }
 
