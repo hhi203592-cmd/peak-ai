@@ -9,8 +9,11 @@
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;height:100vh;overflow:hidden}
 button,textarea,input{font:inherit}button{cursor:pointer;color:inherit}
 .app{height:100vh;display:flex}
-.sidebar{width:270px;background:linear-gradient(180deg,#FFFEFC 0%,#F7F2E8 100%);border-right:1px solid #DCC99F;display:flex;flex-direction:column;padding:18px 14px;transition:.2s;box-shadow:5px 0 24px rgba(111,83,34,.04)}
-.brand{display:flex;align-items:center;gap:10px;padding:5px 8px 22px}
+.sidebar{width:270px;flex:0 0 270px;background:linear-gradient(180deg,#FFFEFC 0%,#F7F2E8 100%);border-right:1px solid #DCC99F;display:flex;flex-direction:column;padding:18px 14px;transition:.2s;box-shadow:5px 0 24px rgba(111,83,34,.04)}
+.sidebar.collapsed{width:0;flex-basis:0;padding-left:0;padding-right:0;border:0;overflow:hidden;box-shadow:none}
+.brand{display:flex;align-items:center;gap:10px;padding:5px 48px 22px 8px;position:relative}
+.sidebar-back{position:absolute;right:3px;top:4px;width:34px;height:34px;border:1px solid #DCC99F;background:linear-gradient(145deg,#fff,#F5EBD6);border-radius:10px;color:#806020;font-size:22px;line-height:1;display:grid;place-items:center;box-shadow:0 3px 10px rgba(105,78,28,.07);transition:.18s}
+.sidebar-back:hover{border-color:#B58A3C;background:#F8F1E2;transform:translateX(-2px)}
 .logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(145deg,#E7D4A2,#A77B2D 55%,#76521D);display:grid;place-items:center;color:#fffdf6;font-weight:900;font-size:21px;border:1px solid #C5A45F;box-shadow:inset 0 1px 2px #fff8df,0 5px 15px rgba(126,91,29,.22);text-shadow:0 1px 2px rgba(73,48,8,.35)}
 .brand-name{font-size:18px;font-weight:850;letter-spacing:2.4px;color:#806020}
 .brand-sub{font-size:9px;color:#9A835A;letter-spacing:1.8px;margin-top:-3px}
@@ -26,6 +29,9 @@ button,textarea,input{font:inherit}button{cursor:pointer;color:inherit}
 .profile small{display:block;color:var(--muted);font-size:11px}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:radial-gradient(ellipse at 50% 0%,#FFFFFF 0%,#FBFAF7 68%)}
 .topbar{height:64px;border-bottom:1px solid #E8DCC2;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(255,254,250,.92);backdrop-filter:blur(14px)}
+.topbar-left{display:flex;align-items:center;gap:13px;min-width:0}
+.menu-btn{width:38px;height:38px;border:1px solid #DCC99F;background:linear-gradient(145deg,#fff,#F5EBD6);border-radius:11px;color:#806020;font-size:20px;display:grid;place-items:center;box-shadow:0 3px 10px rgba(105,78,28,.07)}
+.menu-btn:hover{border-color:#B58A3C;background:#F8F1E2}
 .model{display:flex;align-items:center;gap:9px;font-weight:700;color:#806020}
 .status-dot{width:7px;height:7px;background:#B58A3C;border-radius:50%;box-shadow:0 0 9px rgba(181,138,60,.55)}
 .top-actions{display:flex;gap:8px}
@@ -41,17 +47,51 @@ button,textarea,input{font:inherit}button{cursor:pointer;color:inherit}
 .user-message,.message.user{background:#F3E9D5;border:1px solid #E2D1AA;color:#332A1B}
 .assistant-message,.message.assistant{color:#302B23}
 button:focus-visible{outline:2px solid #B58A3C;outline-offset:2px}
-@media(max-width:700px){.sidebar{box-shadow:8px 0 28px rgba(0,0,0,.12)}}
+
+
+.content{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center}
+.welcome{width:min(780px,calc(100% - 36px));margin:auto;padding:45px 0 80px}
+.welcome-mark{width:58px;height:58px;border-radius:19px;background:linear-gradient(145deg,#fff8df,#d6b66d 55%,#9a712d);display:grid;place-items:center;color:#76551e;box-shadow:0 10px 32px rgba(154,113,45,.16);margin-bottom:24px;border:1px solid #d5bd83}
+.welcome h1{font-size:clamp(30px,5vw,43px);line-height:1.15;letter-spacing:-1.4px;margin:0 0 12px}
+.welcome p{color:var(--muted);margin:0 0 30px}
+.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.suggestion{border-radius:13px;padding:15px;text-align:left;color:#514633;transition:.15s}
+.suggestion b{display:block;font-size:13px;margin-bottom:4px;color:#806020}
+.suggestion span{font-size:12px;color:#82796b}
+.messages{width:min(800px,calc(100% - 36px));padding:30px 0 24px;display:flex;flex-direction:column;gap:25px}
+.message{display:flex;gap:13px;align-items:flex-start}
+.message.user{flex-direction:row-reverse}
+.msg-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:800;background:linear-gradient(145deg,#fff1c9,#c5a45f);color:#76551e;border:1px solid #d8c18b}
+.message.user .msg-avatar{background:#f1eee7;color:#655b4b;border-color:#e2d9c8}
+.bubble{max-width:min(690px,calc(100% - 45px));padding:2px 0;color:#302b23;white-space:pre-wrap;overflow-wrap:anywhere}
+.message.user .bubble{background:#f6f0e4;border:1px solid #e5d6b6;padding:11px 15px;border-radius:16px 5px 16px 16px;color:#332a1b}
+.message.assistant .bubble{padding-top:2px}
+.composer-wrap{width:min(800px,calc(100% - 36px));padding:12px 0 18px}
+.composer{border-radius:18px;padding:12px 13px 10px}
+.composer textarea{width:100%;resize:none;border:0;outline:0;background:transparent;color:var(--text);min-height:30px;max-height:180px;padding:4px 4px 8px}
+.composer textarea::placeholder{color:#a19888}
+.composer-bottom{display:flex;align-items:center;justify-content:space-between}
+.hint{font-size:11px;color:#928875;padding-left:4px}
+.send{width:36px;height:36px;border:0;border-radius:11px;background:linear-gradient(145deg,#f4dfaa,#bd9348 58%,#8a6428);color:white;font-size:18px;font-weight:800;box-shadow:inset 0 1px 0 #fff9,0 4px 12px #80602024}
+.send:disabled{opacity:.45;cursor:not-allowed}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#fffdf8;border:1px solid #d8c69f;padding:9px 14px;border-radius:10px;color:#514633;font-size:12px;opacity:0;pointer-events:none;transition:.2s;box-shadow:var(--shadow)}
+.toast.show{opacity:1}
+.typing{display:flex;gap:5px;padding:9px 0}
+.typing i{width:6px;height:6px;border-radius:50%;background:#b58a3c;animation:pulse 1s infinite alternate}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes pulse{to{opacity:.25;transform:translateY(-3px)}}
+@media(max-width:700px){.app{min-width:0;position:relative}.sidebar{position:absolute;z-index:20;left:0;top:0;bottom:0;width:245px;flex:0 0 245px;padding:14px 10px;box-shadow:8px 0 28px rgba(45,35,18,.16);transform:translateX(-105%);transition:transform .22s ease}.sidebar.open{transform:translateX(0)}.sidebar.collapsed{width:245px;flex-basis:245px;padding:14px 10px;border-right:1px solid #DCC99F;transform:translateX(-105%)}.topbar{padding:0 13px}.welcome{padding:35px 0 60px}.suggestions{grid-template-columns:1fr}.messages{padding-top:20px}.hint{font-size:10px}.brand-sub{letter-spacing:1px}.brand-name{letter-spacing:1.5px}.new-chat{font-size:12px;padding:10px 8px}}
+
 </style></head>
 <body><div class="app">
-<aside class="sidebar" id="sidebar"><div class="brand"><div class="logo" aria-label="Vương miện hoàng gia"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></div><div><div class="brand-name">PEAK</div><div class="brand-sub">YOUR AI SPACE</div></div></div>
+<aside class="sidebar" id="sidebar"><div class="brand"><div class="logo" aria-label="Vương miện hoàng gia"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></div><div><div class="brand-name">PEAK</div><div class="brand-sub">YOUR AI SPACE</div></div><button class="sidebar-back" id="sidebarBack" type="button" aria-label="Thu gọn thanh bên" title="Thu gọn thanh bên">‹</button></div>
 <button class="new-chat" id="newChat"><span>＋</span> Cuộc trò chuyện mới</button><div class="side-label">Gần đây</div><div class="history" id="history"></div>
-<div class="side-bottom"><div class="profile"><div class="avatar">U</div><div><b style="font-size:13px">Người dùng</b><small>Gemini AI</small></div></div></div></aside>
-<main class="main"><header class="topbar"><div class="model"><button class="icon-btn" id="menuBtn" aria-label="Mở menu">☰</button><div class="mobile-brand"><span class="logo" style="width:30px;height:30px;border-radius:50%"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></span> PEAK</div><span class="status-dot"></span><span>PEAK</span><span style="color:var(--muted);font-size:12px;font-weight:400">Gemini 3.8 Flash</span></div><div class="top-actions"><button class="icon-btn" id="clearBtn" title="Xóa cuộc trò chuyện">⌫</button></div></header>
+<div class="side-bottom"><div class="profile"><div class="avatar">U</div><div><b style="font-size:13px">Người dùng</b><small>Không gian cá nhân</small></div></div></div></aside>
+<main class="main"><header class="topbar"><div class="topbar-left"><button class="menu-btn" id="menuToggle" type="button" aria-label="Mở hoặc đóng thanh bên" aria-controls="sidebar" aria-expanded="true">☰</button><div class="model"><span class="status-dot"></span><span>PEAK</span></div></div><div class="top-actions"><button class="icon-btn" id="clearBtn" title="Xóa cuộc trò chuyện">⌫</button></div></header>
 <section class="content" id="content"><div class="welcome" id="welcome"><div class="welcome-mark"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></div><h1>Xin chào, tôi là <span class="gradient">PEAK.</span></h1><p>Không gian AI của riêng bạn. Hôm nay chúng ta sẽ cùng tạo ra điều gì?</p><div class="suggestions"><button class="suggestion" data-prompt="Giải thích trí tuệ nhân tạo bằng cách dễ hiểu."><b>✦ Khám phá AI</b><span>Giải thích một chủ đề khó theo cách đơn giản</span></button><button class="suggestion" data-prompt="Giúp tôi lên kế hoạch học tập hiệu quả trong tuần này."><b>▦ Lập kế hoạch</b><span>Sắp xếp mục tiêu và công việc</span></button><button class="suggestion" data-prompt="Gợi ý ý tưởng cho một dự án website sáng tạo."><b>⌘ Sáng tạo ý tưởng</b><span>Bắt đầu một dự án mới</span></button><button class="suggestion" data-prompt="Viết một đoạn giới thiệu ngắn cho dự án của tôi."><b>✎ Hỗ trợ viết</b><span>Biến ý tưởng thành nội dung rõ ràng</span></button></div></div><div class="messages" id="messages" hidden></div></section>
-<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Nhắn tin cho PEAK..." aria-label="Tin nhắn"></textarea><div class="composer-bottom"><span class="hint">Enter để gửi · Shift + Enter để xuống dòng</span><button class="send" id="send" aria-label="Gửi" disabled>↑</button></div></div><div class="disclaimer">PEAK sử dụng Gemini AI. Câu trả lời có thể chưa chính xác; hãy kiểm tra thông tin quan trọng.</div></div></main></div><div class="toast" id="toast"></div>
+<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Nhắn tin cho PEAK..." aria-label="Tin nhắn"></textarea><div class="composer-bottom"><span class="hint">Enter để gửi · Shift + Enter để xuống dòng</span><button class="send" id="send" aria-label="Gửi" disabled>↑</button></div></div></div></main></div><div class="toast" id="toast"></div>
 <script>
-// PEAK v0.2 — Gemini AI is called through the protected Node.js backend.
+// PEAK — chat requests are handled by the protected server backend.
 const PEAK_API_URL = '/api/chat';
 const $=s=>document.querySelector(s);let chats=[],activeId=null,busy=false;
 try{chats=JSON.parse(localStorage.getItem('peak_chats')||'[]')}catch{chats=[]}
@@ -75,12 +115,12 @@ async function getReply(q,c){
   }
   const r=await fetch(PEAK_API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(d.error||'Không thể kết nối Gemini.');
-  return {reply:d.reply||'Gemini chưa trả về nội dung.',interactionId:d.interactionId||c.interactionId||null};
+  if(!r.ok)throw new Error(d.error||'Không thể kết nối.');
+  return {reply:d.reply||'Chưa nhận được phản hồi.',interactionId:d.interactionId||c.interactionId||null};
 }
 async function send(){const input=$('#prompt'),q=input.value.trim();if(!q||busy)return;if(!activeId){const c={id: (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
   ? crypto.randomUUID()
   : "peak-" + Date.now() + "-" + Math.random().toString(36).slice(2),title:titleFrom(q),messages:[]};chats.push(c);activeId=c.id;$('#welcome').hidden=true;$('#messages').hidden=false;$('#messages').innerHTML=''}const c=current();c.messages.push({role:'user',text:q});addMessage('user',q);input.value='';resize();busy=true;$('#send').disabled=true;const typing=addMessage('assistant','');typing.querySelector('.bubble').innerHTML='<span class="typing"><i></i><i></i><i></i></span>';let reply;try{const result=await getReply(q,c);reply=result.reply;c.interactionId=result.interactionId||c.interactionId||null}catch(err){reply='Lỗi: '+(err.message||'Không thể kết nối PEAK.')}typing.querySelector('.bubble').textContent=reply;c.messages.push({role:'assistant',text:reply});busy=false;$('#send').disabled=false;save();renderHistory();scrollBottom()}
 function resize(){const t=$('#prompt');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,180)+'px';$('#send').disabled=!t.value.trim()||busy}
-$('#send').onclick=send;$('#prompt').addEventListener('input',resize);$('#prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});$('#newChat').onclick=newChat;$('#clearBtn').onclick=()=>{if(!activeId){toast('Chưa có cuộc trò chuyện để xóa.');return}chats=chats.filter(c=>c.id!==activeId);save();newChat();toast('Đã xóa cuộc trò chuyện.')};$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{$('#prompt').value=b.dataset.prompt;resize();send()});renderHistory();if(chats.length)openChat(chats[chats.length-1].id);
+const menuToggle=$('#menuToggle');function toggleSidebar(){const sidebar=$('#sidebar');if(window.matchMedia('(max-width:700px)').matches){sidebar.classList.toggle('open');menuToggle.setAttribute('aria-expanded',sidebar.classList.contains('open')?'true':'false')}else{sidebar.classList.toggle('collapsed');menuToggle.setAttribute('aria-expanded',sidebar.classList.contains('collapsed')?'false':'true')}}menuToggle.addEventListener('click',toggleSidebar);$('#sidebarBack').addEventListener('click',toggleSidebar);$('#send').onclick=send;$('#prompt').addEventListener('input',resize);$('#prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});$('#newChat').onclick=newChat;$('#clearBtn').onclick=()=>{if(!activeId){toast('Chưa có cuộc trò chuyện để xóa.');return}chats=chats.filter(c=>c.id!==activeId);save();newChat();toast('Đã xóa cuộc trò chuyện.')};document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{$('#prompt').value=b.dataset.prompt;resize();send()});renderHistory();if(chats.length)openChat(chats[chats.length-1].id);
 </script></body></html>
