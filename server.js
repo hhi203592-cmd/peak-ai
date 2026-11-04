@@ -21,8 +21,11 @@ const SYSTEM_INSTRUCTION =
   'Không yêu cầu người dùng cung cấp mật khẩu, API key hoặc thông tin bí mật.';
 
 // Lưu lịch sử hội thoại trong bộ nhớ máy chủ.
-const conversations = new Map();
+ const conversations = new Map();
 const SESSION_MAX_AGE = 60 * 60 * 1000;
+
+// Chỉ xử lý một yêu cầu Gemini tại một thời điểm.
+let geminiBusy = false;
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '32kb' }));
@@ -106,7 +109,7 @@ app.post('/api/chat', async (req, res) => {
   });
 
   // Chỉ giữ tối đa 20 lượt nội dung gần nhất.
-  const limitedContents = contents.slice(-40);
+  const limitedContents = contents.slice(-20);
 
   const payload = {
     system_instruction: {
@@ -118,11 +121,18 @@ app.post('/api/chat', async (req, res) => {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
 
-  // Thử lại tối đa 4 lần khi Gemini quá tải hoặc giới hạn tốc độ.
-  const maxAttempts = 4;
-  const retryableStatuses = [429, 500, 502, 503, 504];
+   // Thử lại tối đa 1 lần nếu Gemini báo quá tải (503).
+const maxAttempts = 2;
+const retryableStatuses = [503];
+   if (geminiBusy) {
+  return res.status(429).json({
+    error: 'PEAK đang xử lý tin nhắn trước đó. Vui lòng đợi một chút.'
+  });
+}
 
-  try {
+geminiBusy = true;
+
+try {
     let upstream;
     let responseText = '';
 
@@ -257,7 +267,7 @@ app.post('/api/chat', async (req, res) => {
         role: 'model',
         parts: [{ text: reply }]
       }
-    ].slice(-40);
+       ].slice(-20);
 
     conversations.set(sessionId, {
       contents: updatedContents,
@@ -270,7 +280,7 @@ app.post('/api/chat', async (req, res) => {
       model: GEMINI_MODEL
     });
 
-  } catch (error) {
+   } catch (error) {
     const timedOut = error?.name === 'AbortError';
 
     console.error('PEAK server error:', error);
@@ -280,9 +290,10 @@ app.post('/api/chat', async (req, res) => {
         ? 'Gemini phản hồi quá lâu. Vui lòng thử lại.'
         : 'Máy chủ PEAK gặp lỗi khi kết nối Gemini.'
     });
+  } finally {
+    geminiBusy = false;
   }
 });
-
 app.use(express.static(path.join(__dirname, 'public'), {
   dotfiles: 'deny'
 }));
