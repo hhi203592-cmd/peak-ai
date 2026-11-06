@@ -82,6 +82,18 @@ button:focus-visible{outline:2px solid #B58A3C;outline-offset:2px}
 @keyframes pulse{to{opacity:.25;transform:translateY(-3px)}}
 @media(max-width:700px){.app{min-width:0;position:relative}.sidebar{position:absolute;z-index:20;left:0;top:0;bottom:0;width:245px;flex:0 0 245px;padding:14px 10px;box-shadow:8px 0 28px rgba(45,35,18,.16);transform:translateX(-105%);transition:transform .22s ease}.sidebar.open{transform:translateX(0)}.sidebar.collapsed{width:245px;flex-basis:245px;padding:14px 10px;border-right:1px solid #DCC99F;transform:translateX(-105%)}.topbar{padding:0 13px}.welcome{padding:35px 0 60px}.suggestions{grid-template-columns:1fr}.messages{padding-top:20px}.hint{font-size:10px}.brand-sub{letter-spacing:1px}.brand-name{letter-spacing:1.5px}.new-chat{font-size:12px;padding:10px 8px}}
 
+
+.tool-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:9px}
+.tool-btn{border:1px solid #e5d9bf;background:#fffdf8;color:#806020;border-radius:10px;padding:7px 10px;font-size:12px}
+.tool-btn:hover{border-color:#b58a3c;background:#f8f1e2}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:#f7f0df;border:1px solid #e5d9bf;border-radius:9px;padding:5px 9px;font-size:12px;color:#76551e;margin:4px 0}
+.message-image{display:block;max-width:min(420px,100%);max-height:420px;border-radius:12px;border:1px solid #e5d9bf;margin-top:8px}
+.voice-panel{position:fixed;inset:0;background:#211a10aa;z-index:50;display:none;place-items:center;padding:18px}
+.voice-panel.show{display:grid}
+.voice-card{width:min(420px,100%);background:#fffdf8;border:1px solid #d8c69f;border-radius:22px;padding:25px;text-align:center;box-shadow:0 20px 70px #0003}
+.voice-orb{width:112px;height:112px;border-radius:50%;margin:18px auto;background:radial-gradient(circle,#fff4cc,#d5b56d 60%,#9b712c);display:grid;place-items:center;color:#76551e;font-size:38px;box-shadow:0 0 0 12px #d5b56d22}
+.voice-status{font-size:13px;color:#82796b;min-height:24px}
+.voice-actions{display:flex;justify-content:center;gap:10px;margin-top:18px}
 </style></head>
 <body><div class="app">
 <aside class="sidebar" id="sidebar"><div class="brand"><div class="logo" aria-label="Vương miện hoàng gia"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></div><div><div class="brand-name">PEAK</div><div class="brand-sub">YOUR AI SPACE</div></div><button class="sidebar-back" id="sidebarBack" type="button" aria-label="Thu gọn thanh bên" title="Thu gọn thanh bên">‹</button></div>
@@ -89,7 +101,8 @@ button:focus-visible{outline:2px solid #B58A3C;outline-offset:2px}
 <div class="side-bottom"><div class="profile"><div class="avatar">U</div><div><b style="font-size:13px">Người dùng</b><small>Không gian cá nhân</small></div></div></div></aside>
 <main class="main"><header class="topbar"><div class="topbar-left"><button class="menu-btn" id="menuToggle" type="button" aria-label="Mở hoặc đóng thanh bên" aria-controls="sidebar" aria-expanded="true">☰</button><div class="model"><span class="status-dot"></span><span>PEAK</span></div></div><div class="top-actions"><button class="icon-btn" id="clearBtn" title="Xóa cuộc trò chuyện">⌫</button></div></header>
 <section class="content" id="content"><div class="welcome" id="welcome"><div class="welcome-mark"><svg class="royal-crown" viewBox="0 0 100 76" aria-hidden="true" focusable="false"><defs><linearGradient id="crownGold" x1="0" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#fff2bd"/><stop offset=".28" stop-color="#f5d477"/><stop offset=".62" stop-color="#bd842b"/><stop offset="1" stop-color="#ffe8a0"/></linearGradient></defs><path d="M10 20 L29 37 L40 8 L51 35 L66 5 L74 37 L91 19 L84 61 Q50 70 16 61 Z" fill="url(#crownGold)" stroke="#ffe8a0" stroke-width="2.6" stroke-linejoin="round"/><path d="M16 53 Q50 62 84 53 L81 66 Q50 74 19 66 Z" fill="#9d6b20" stroke="#f6d77e" stroke-width="2"/><path d="M10 20 L18 16 L29 33 L40 8 L46 31 L51 35 L66 5 L70 33 L74 37 L91 19 L95 23 L84 48 Q50 57 16 48 Z" fill="none" stroke="#fff0b5" stroke-width="1.8"/><g fill="#fff4c8"><circle cx="29" cy="37" r="2"/><circle cx="66" cy="5" r="2.2"/><circle cx="91" cy="19" r="2"/></g></svg></div><h1>Xin chào, tôi là <span class="gradient">PEAK.</span></h1><p>Không gian AI của riêng bạn. Hôm nay chúng ta sẽ cùng tạo ra điều gì?</p><div class="suggestions"><button class="suggestion" data-prompt="Giải thích trí tuệ nhân tạo bằng cách dễ hiểu."><b>✦ Khám phá AI</b><span>Giải thích một chủ đề khó theo cách đơn giản</span></button><button class="suggestion" data-prompt="Giúp tôi lên kế hoạch học tập hiệu quả trong tuần này."><b>▦ Lập kế hoạch</b><span>Sắp xếp mục tiêu và công việc</span></button><button class="suggestion" data-prompt="Gợi ý ý tưởng cho một dự án website sáng tạo."><b>⌘ Sáng tạo ý tưởng</b><span>Bắt đầu một dự án mới</span></button><button class="suggestion" data-prompt="Viết một đoạn giới thiệu ngắn cho dự án của tôi."><b>✎ Hỗ trợ viết</b><span>Biến ý tưởng thành nội dung rõ ràng</span></button></div></div><div class="messages" id="messages" hidden></div></section>
-<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Nhắn tin cho PEAK..." aria-label="Tin nhắn"></textarea><div class="composer-bottom"><span class="hint">Enter để gửi · Shift + Enter để xuống dòng</span><button class="send" id="send" aria-label="Gửi" disabled>↑</button></div></div></div></main></div><div class="toast" id="toast"></div>
+<div class="composer-wrap"><div class="composer"><textarea id="prompt" rows="1" placeholder="Nhắn tin cho PEAK..." aria-label="Tin nhắn"></textarea><div class="composer-bottom"><span class="hint">Enter để gửi · Shift + Enter để xuống dòng</span><button class="send" id="send" aria-label="Gửi" disabled>↑</button></div><div class="tool-row"><input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,application/pdf,text/plain,text/csv,.docx" hidden><button class="tool-btn" id="attachBtn" type="button">＋ Ảnh / Tệp</button><button class="tool-btn" id="generateBtn" type="button">✦ Tạo ảnh</button><button class="tool-btn" id="voiceBtn" type="button">🎙 Voice</button><span id="selectedFile" class="file-chip" hidden></span></div></div></div></main></div><div class="toast" id="toast"></div><div class="voice-panel" id="voicePanel"><div class="voice-card"><b style="color:#806020;letter-spacing:2px">PEAK VOICE</b><div class="voice-orb">♫</div><div class="voice-status" id="voiceStatus">Đang chuẩn bị kết nối…</div><div class="voice-actions"><button class="tool-btn" id="voiceMute">Tắt micro</button><button class="tool-btn" id="voiceEnd">Kết thúc</button></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 // PEAK — chat requests are handled by the protected server backend.
 const PEAK_API_URL = '/api/chat';
@@ -123,4 +136,94 @@ async function send(){const input=$('#prompt'),q=input.value.trim();if(!q||busy)
   : "peak-" + Date.now() + "-" + Math.random().toString(36).slice(2),title:titleFrom(q),messages:[]};chats.push(c);activeId=c.id;$('#welcome').hidden=true;$('#messages').hidden=false;$('#messages').innerHTML=''}const c=current();c.messages.push({role:'user',text:q});addMessage('user',q);input.value='';resize();busy=true;$('#send').disabled=true;const typing=addMessage('assistant','');typing.querySelector('.bubble').innerHTML='<span class="typing"><i></i><i></i><i></i></span>';let reply;try{const result=await getReply(q,c);reply=result.reply;c.interactionId=result.interactionId||c.interactionId||null}catch(err){reply='Lỗi: '+(err.message||'Không thể kết nối PEAK.')}typing.querySelector('.bubble').textContent=reply;c.messages.push({role:'assistant',text:reply});busy=false;$('#send').disabled=false;save();renderHistory();scrollBottom()}
 function resize(){const t=$('#prompt');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,180)+'px';$('#send').disabled=!t.value.trim()||busy}
 const menuToggle=$('#menuToggle');function toggleSidebar(){const sidebar=$('#sidebar');if(window.matchMedia('(max-width:700px)').matches){sidebar.classList.toggle('open');menuToggle.setAttribute('aria-expanded',sidebar.classList.contains('open')?'true':'false')}else{sidebar.classList.toggle('collapsed');menuToggle.setAttribute('aria-expanded',sidebar.classList.contains('collapsed')?'false':'true')}}menuToggle.addEventListener('click',toggleSidebar);$('#sidebarBack').addEventListener('click',toggleSidebar);$('#send').onclick=send;$('#prompt').addEventListener('input',resize);$('#prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});$('#newChat').onclick=newChat;$('#clearBtn').onclick=()=>{if(!activeId){toast('Chưa có cuộc trò chuyện để xóa.');return}chats=chats.filter(c=>c.id!==activeId);save();newChat();toast('Đã xóa cuộc trò chuyện.')};document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{$('#prompt').value=b.dataset.prompt;resize();send()});renderHistory();if(chats.length)openChat(chats[chats.length-1].id);
+
+// Attachments: image/PDF/TXT/CSV are sent as multimodal input. DOCX is converted to text in-browser.
+let selectedFile = null;
+const fileInput = $('#fileInput');
+$('#attachBtn').onclick = () => fileInput.click();
+fileInput.addEventListener('change', () => {
+  selectedFile = fileInput.files?.[0] || null;
+  const chip = $('#selectedFile');
+  chip.hidden = !selectedFile;
+  chip.textContent = selectedFile ? '📎 ' + selectedFile.name : '';
+  if (selectedFile && !$('#prompt').value.trim()) $('#prompt').placeholder = 'Bạn muốn PEAK làm gì với tệp này?';
+  resize();
+});
+function fileToBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=reject;r.readAsDataURL(file)})}
+async function sendAttachment(question, file, c){
+  const mime=file.type || (file.name.toLowerCase().endsWith('.pdf')?'application/pdf':'');
+  if(file.name.toLowerCase().endsWith('.docx')){
+    if(!window.JSZip) throw new Error('Không tải được bộ đọc Word. Hãy thử lại khi có kết nối Internet.');
+    const zip=await JSZip.loadAsync(file);
+    const doc=await zip.file('word/document.xml')?.async('string');
+    if(!doc) throw new Error('Không đọc được nội dung DOCX.');
+    const xml=new DOMParser().parseFromString(doc,'text/xml');
+    const textContent=[...xml.getElementsByTagName('w:t')].map(n=>n.textContent||'').join(' ');
+    if(!textContent.trim()) throw new Error('Tài liệu Word không có văn bản đọc được.');
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:(question||'Hãy phân tích tài liệu này.')+'\\n\\nNội dung tài liệu '+file.name+':\\n'+textContent.slice(0,80000),previousInteractionId:c.interactionId||null})});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Không xử lý được tài liệu Word.');
+    c.interactionId=d.interactionId||c.interactionId;return d.reply;
+  }
+  const data=await fileToBase64(file);
+  const r=await fetch('/api/chat-media',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:question,fileName:file.name,mimeType:mime,data})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||'Không thể phân tích tệp.');
+  return d.reply;
+}
+send = async function(){
+  const input=$('#prompt'), q=input.value.trim();
+  if(!q && !selectedFile)return;
+  if(busy)return;
+  const file=selectedFile;
+  if(!activeId){const c={id:(typeof crypto!=="undefined"&&crypto.randomUUID)?crypto.randomUUID():"peak-"+Date.now(),title:titleFrom(q||file.name),messages:[]};chats.push(c);activeId=c.id;$('#welcome').hidden=true;$('#messages').hidden=false;$('#messages').innerHTML=''}
+  const c=current();const display=q||(file?'Hãy phân tích tệp: '+file.name:'');
+  c.messages.push({role:'user',text:display});addMessage('user',display);
+  if(file && file.type.startsWith('image/')){const preview=document.createElement('img');preview.className='message-image';preview.src=URL.createObjectURL(file);$('#messages').lastElementChild.querySelector('.bubble').append(preview)}
+  input.value='';selectedFile=null;fileInput.value='';$('#selectedFile').hidden=true;resize();busy=true;$('#send').disabled=true;
+  const typing=addMessage('assistant','');typing.querySelector('.bubble').innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+  let reply;
+  try{reply=file?await sendAttachment(q,file,c):(await getReply(q,c)).reply}
+  catch(err){reply='Lỗi: '+(err.message||'Không thể kết nối PEAK.')}
+  typing.querySelector('.bubble').textContent=reply;c.messages.push({role:'assistant',text:reply});busy=false;$('#send').disabled=false;save();renderHistory();scrollBottom();
+};
+$('#send').onclick=send;
+$('#generateBtn').onclick=async()=>{
+  const prompt=$('#prompt').value.trim();
+  if(!prompt){toast('Hãy nhập mô tả hình ảnh muốn tạo trước.');$('#prompt').focus();return}
+  if(busy)return;busy=true;$('#send').disabled=true;toast('PEAK đang tạo ảnh…');
+  try{
+    const r=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||'Không tạo được ảnh.');
+    if(!activeId){const c={id:'peak-'+Date.now(),title:titleFrom(prompt),messages:[]};chats.push(c);activeId=c.id;$('#welcome').hidden=true;$('#messages').hidden=false}
+    const row=addMessage('assistant',d.text||'Ảnh đã được tạo.');const img=document.createElement('img');img.className='message-image';img.src=d.image;img.alt='Ảnh do PEAK tạo';row.querySelector('.bubble').append(img);
+    const c=current();c.messages.push({role:'assistant',text:'Ảnh đã được tạo.'});save();renderHistory();$('#prompt').value='';resize();
+  }catch(e){toast(e.message)}finally{busy=false;resize()}
+};
+
+// Gemini Live voice: short-lived token; audio remains in the browser and the permanent key stays server-side.
+let liveSocket=null, micStream=null, audioCtx=null, processor=null, micSource=null, voiceMuted=false, nextPlayAt=0;
+function b64(bytes){let s='';for(let i=0;i<bytes.length;i++)s+=String.fromCharCode(bytes[i]);return btoa(s)}
+function fromB64(s){const bin=atob(s);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
+async function startVoice(){
+  $('#voicePanel').classList.add('show');$('#voiceStatus').textContent='Đang xin quyền micro…';
+  try{
+    const tokenRes=await fetch('/api/live-token',{method:'POST'});const tokenData=await tokenRes.json();if(!tokenRes.ok)throw new Error(tokenData.error||'Không lấy được mã Voice.');
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+    liveSocket=new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token='+encodeURIComponent(tokenData.token));
+    liveSocket.onopen=()=>liveSocket.send(JSON.stringify({setup:{model:'models/'+tokenData.model,generationConfig:{responseModalities:['AUDIO']},systemInstruction:{parts:[{text:'Bạn là PEAK, trợ lý AI thân thiện. Trả lời bằng tiếng Việt tự nhiên, ngắn gọn khi trò chuyện bằng giọng nói.'}]}}}));
+    liveSocket.onmessage=async(ev)=>{
+      const msg=JSON.parse(ev.data);
+      if(msg.setupComplete){$('#voiceStatus').textContent='Đang nghe bạn nói…';micSource=audioCtx.createMediaStreamSource(micStream);processor=audioCtx.createScriptProcessor(4096,1,1);processor.onaudioprocess=e=>{if(voiceMuted||liveSocket?.readyState!==1)return;const f=e.inputBuffer.getChannelData(0),pcm=new Int16Array(f.length);for(let i=0;i<f.length;i++){const v=Math.max(-1,Math.min(1,f[i]));pcm[i]=v<0?v*32768:v*32767}liveSocket.send(JSON.stringify({realtimeInput:{mediaChunks:[{mimeType:'audio/pcm;rate=16000',data:b64(new Uint8Array(pcm.buffer))}]}}))};micSource.connect(processor);const silentGain=audioCtx.createGain();silentGain.gain.value=0;processor.connect(silentGain);silentGain.connect(audioCtx.destination)}
+      const parts=msg.serverContent?.modelTurn?.parts||[];
+      for(const part of parts){const data=part.inlineData?.data;if(data){const raw=fromB64(data);const pcm=new Int16Array(raw.buffer);const buf=audioCtx.createBuffer(1,pcm.length,24000);const channel=buf.getChannelData(0);for(let i=0;i<pcm.length;i++)channel[i]=pcm[i]/32768;const src=audioCtx.createBufferSource();src.buffer=buf;src.connect(audioCtx.destination);const now=audioCtx.currentTime;nextPlayAt=Math.max(nextPlayAt,now);src.start(nextPlayAt);nextPlayAt+=buf.duration}}
+      if(msg.serverContent?.turnComplete)$('#voiceStatus').textContent='PEAK đã trả lời · Bạn có thể nói tiếp';
+    };
+    liveSocket.onerror=()=>$('#voiceStatus').textContent='Kết nối Voice gặp lỗi.';
+    liveSocket.onclose=()=>$('#voiceStatus').textContent='Đã ngắt kết nối.';
+  }catch(e){$('#voiceStatus').textContent=e.message||'Không thể bật Voice.'}
+}
+function stopVoice(){try{processor?.disconnect();micSource?.disconnect();micStream?.getTracks().forEach(t=>t.stop());liveSocket?.close();audioCtx?.close()}catch{}processor=null;micSource=null;micStream=null;liveSocket=null;audioCtx=null;$('#voicePanel').classList.remove('show')}
+$('#voiceBtn').onclick=startVoice;$('#voiceEnd').onclick=stopVoice;$('#voiceMute').onclick=()=>{voiceMuted=!voiceMuted;$('#voiceMute').textContent=voiceMuted?'Bật micro':'Tắt micro';$('#voiceStatus').textContent=voiceMuted?'Micro đang tắt':'Đang nghe bạn nói…'};
+
 </script></body></html>
