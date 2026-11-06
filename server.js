@@ -1,4 +1,5 @@
- import 'dotenv/config';
+  
+import 'dotenv/config';
 import express from 'express';
 import { rateLimit } from 'express-rate-limit';
 import path from 'node:path';
@@ -21,14 +22,11 @@ const SYSTEM_INSTRUCTION =
   'Không yêu cầu người dùng cung cấp mật khẩu, API key hoặc thông tin bí mật.';
 
 // Lưu lịch sử hội thoại trong bộ nhớ máy chủ.
- const conversations = new Map();
+const conversations = new Map();
 const SESSION_MAX_AGE = 60 * 60 * 1000;
 
-// Chỉ xử lý một yêu cầu Gemini tại một thời điểm.
-let geminiBusy = false;
-
 app.disable('x-powered-by');
-app.use(express.json({ limit: '32kb' }));
+app.use(express.json({ limit: '24mb' }));
 
 app.use('/api/', rateLimit({
   windowMs: 60 * 1000,
@@ -109,7 +107,7 @@ app.post('/api/chat', async (req, res) => {
   });
 
   // Chỉ giữ tối đa 20 lượt nội dung gần nhất.
-  const limitedContents = contents.slice(-20);
+  const limitedContents = contents.slice(-40);
 
   const payload = {
     system_instruction: {
@@ -121,18 +119,10 @@ app.post('/api/chat', async (req, res) => {
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`;
 
-   // Thử lại tối đa 1 lần nếu Gemini báo quá tải (503).
-const maxAttempts = 2;
-const retryableStatuses = [503];
-   if (geminiBusy) {
-  return res.status(429).json({
-    error: 'PEAK đang xử lý tin nhắn trước đó. Vui lòng đợi một chút.'
-  });
-}
+  const maxAttempts = 3;
+  const retryableStatuses = [429, 500, 502, 503, 504];
 
-geminiBusy = true;
-
-try {
+  try {
     let upstream;
     let responseText = '';
 
@@ -164,43 +154,12 @@ try {
         break;
       }
 
-      // Ưu tiên thời gian chờ Google gửi trong header Retry-After.
-      let retryDelayMs = 0;
-      const retryAfter = upstream.headers.get('retry-after');
-
-      if (retryAfter) {
-        const seconds = Number(retryAfter);
-
-        if (Number.isFinite(seconds) && seconds > 0) {
-          retryDelayMs = seconds * 1000;
-        } else {
-          const retryDate = Date.parse(retryAfter);
-
-          if (Number.isFinite(retryDate)) {
-            retryDelayMs = Math.max(0, retryDate - Date.now());
-          }
-        }
-      }
-
-      // Nếu không có Retry-After, dùng thời gian chờ tăng dần.
-      if (retryDelayMs <= 0) {
-        const backoffMs = Math.min(
-          2000 * (2 ** (attempt - 1)),
-          15000
-        );
-
-        retryDelayMs = backoffMs + Math.floor(Math.random() * 1000);
-      }
-
-      // Không chờ quá lâu trong một request.
-      retryDelayMs = Math.min(retryDelayMs, 20000);
-
       console.warn(
-        `Gemini báo lỗi ${upstream.status}. Thử lại ${attempt + 1}/${maxAttempts} sau ${retryDelayMs}ms.`
+        `Gemini báo lỗi ${upstream.status}. Đang thử lại lần ${attempt + 1}/${maxAttempts}.`
       );
 
       await new Promise(resolve =>
-        setTimeout(resolve, retryDelayMs)
+        setTimeout(resolve, attempt * 1500)
       );
     }
 
@@ -225,15 +184,9 @@ try {
         });
       }
 
-      if (upstream.status === 429) {
-        return res.status(429).json({
-          error: 'Gemini đang giới hạn số yêu cầu (429). Hãy đợi một chút rồi thử lại; nếu lỗi kéo dài, cần kiểm tra quota và giới hạn API.'
-        });
-      }
-
-      if (upstream.status === 503) {
-        return res.status(503).json({
-          error: 'Gemini hiện đang quá tải (503). PEAK đã thử kết nối lại nhưng chưa thành công. Vui lòng thử lại sau.'
+      if (upstream.status === 429 || upstream.status === 503) {
+        return res.status(502).json({
+          error: 'Gemini đang quá tải hoặc đã đạt giới hạn yêu cầu. Vui lòng thử lại sau.'
         });
       }
 
@@ -267,7 +220,7 @@ try {
         role: 'model',
         parts: [{ text: reply }]
       }
-       ].slice(-20);
+    ].slice(-40);
 
     conversations.set(sessionId, {
       contents: updatedContents,
@@ -280,7 +233,7 @@ try {
       model: GEMINI_MODEL
     });
 
-   } catch (error) {
+  } catch (error) {
     const timedOut = error?.name === 'AbortError';
 
     console.error('PEAK server error:', error);
@@ -290,10 +243,81 @@ try {
         ? 'Gemini phản hồi quá lâu. Vui lòng thử lại.'
         : 'Máy chủ PEAK gặp lỗi khi kết nối Gemini.'
     });
-  } finally {
-    geminiBusy = false;
   }
 });
+
+
+// Multimodal chat: images, PDFs and plain-text documents are sent only to Gemini.
+app.post('/api/chat-media', async (req, res) => {
+  if (!GEMINI_API_KEY) return res.status(503).json({ error: 'Máy chủ chưa được cấu hình API key.' });
+  const { message = '', fileName = '', mimeType = '', data = '' } = req.body || {};
+  if (typeof message !== 'string' || message.length > 10000) return res.status(400).json({ error: 'Tin nhắn không hợp lệ.' });
+  if (typeof data !== 'string' || !data || data.length > 24_000_000) return res.status(413).json({ error: 'Tệp quá lớn. Hãy chọn tệp nhỏ hơn 17 MB.' });
+  const allowed = ['image/jpeg','image/png','image/webp','application/pdf','text/plain','text/csv'];
+  if (!allowed.includes(mimeType)) return res.status(415).json({ error: 'Định dạng chưa hỗ trợ. Hãy dùng ảnh PNG/JPG/WEBP, PDF, TXT hoặc CSV.' });
+  try {
+    const payload = {
+      system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+      contents: [{ role: 'user', parts: [
+        { text: (message.trim() || 'Hãy phân tích tệp đính kèm và giải thích nội dung bằng tiếng Việt.') + (fileName ? `\nTên tệp: ${fileName}` : '') },
+        { inline_data: { mime_type: mimeType, data } }
+      ] }]
+    };
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
+      method: 'POST', headers: { 'Content-Type':'application/json', 'x-goog-api-key': GEMINI_API_KEY }, body: JSON.stringify(payload), signal: AbortSignal.timeout(90000)
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(r.status === 429 ? 429 : 502).json({ error: d.error?.message || 'Gemini chưa xử lý được tệp. Hãy thử lại.' });
+    const reply = (d.candidates || []).flatMap(c => c.content?.parts || []).map(p => p.text || '').join('\n').trim();
+    if (!reply) return res.status(502).json({ error: 'Gemini không trả về nội dung văn bản.' });
+    res.json({ reply, model: GEMINI_MODEL });
+  } catch (e) { res.status(502).json({ error: 'Không thể xử lý tệp lúc này.' }); }
+});
+
+// Image generation uses a separate image model; it does not change the chat model.
+app.post('/api/generate-image', async (req, res) => {
+  if (!GEMINI_API_KEY) return res.status(503).json({ error: 'Máy chủ chưa được cấu hình API key.' });
+  const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
+  if (!prompt || prompt.length > 4000) return res.status(400).json({ error: 'Hãy nhập mô tả ảnh (tối đa 4.000 ký tự).' });
+  try {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST', headers: { 'Content-Type':'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify({ model: process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-image', input: prompt, response_format: [{ type:'text' }, { type:'image' }] }),
+      signal: AbortSignal.timeout(120000)
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(502).json({ error: d.error?.message || 'Model tạo ảnh không khả dụng hoặc đã hết hạn mức.' });
+    let imageData = d.output_image?.data || '';
+    let mime = d.output_image?.mime_type || 'image/png';
+    if (!imageData && Array.isArray(d.output)) {
+      for (const item of d.output) for (const part of (item.content || item.parts || [])) {
+        if (part.type === 'image' || part.data) { imageData = part.data || ''; mime = part.mime_type || mime; }
+      }
+    }
+    if (!imageData) return res.status(502).json({ error: 'Model chưa trả về ảnh. Hãy thử lại hoặc kiểm tra quyền truy cập model tạo ảnh.' });
+    res.json({ image: `data:${mime};base64,${imageData}`, text: d.output_text || 'Ảnh đã được tạo.' });
+  } catch (e) { res.status(502).json({ error: 'Không thể kết nối model tạo ảnh.' }); }
+});
+
+// Short-lived token for Gemini Live. The permanent API key stays on the server.
+app.post('/api/live-token', async (_req, res) => {
+  if (!GEMINI_API_KEY) return res.status(503).json({ error: 'Máy chủ chưa được cấu hình API key.' });
+  try {
+    const now = Date.now();
+    const expires = new Date(now + 30 * 60 * 1000).toISOString();
+    const startExpires = new Date(now + 60 * 1000).toISOString();
+    const model = process.env.GEMINI_LIVE_MODEL || 'models/gemini-3.8-live';
+    const r = await fetch('https://generativelanguage.googleapis.com/v1alpha/auth_tokens', {
+      method: 'POST', headers: { 'Content-Type':'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify({ uses: 1, expireTime: expires, newSessionExpireTime: startExpires, liveConnectConstraints: { model, config: { responseModalities: ['AUDIO'], systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] } } } }),
+      signal: AbortSignal.timeout(20000)
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return res.status(502).json({ error: d.error?.message || 'Không cấp được mã Voice. Kiểm tra quyền Gemini Live API.' });
+    res.json({ token: d.name, model: model.replace(/^models\//,'') });
+  } catch (e) { res.status(502).json({ error: 'Không thể kết nối Gemini Live.' }); }
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   dotfiles: 'deny'
 }));
