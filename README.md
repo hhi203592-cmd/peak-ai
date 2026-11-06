@@ -1,28 +1,23 @@
-# PEAK AI v0.2 — Gemini backend
-
-PEAK is a small chat website connected to Google's Gemini Interactions API. The browser talks only to `/api/chat`; the Gemini API key stays on the server.
-
-## Requirements
-- Node.js 20 or newer
-- A Gemini API key from Google AI Studio
-
-## Run locally
-1. Copy `.env.example` to `.env`.
-2. Put your key in `GEMINI_API_KEY` in `.env`.
-3. Run `npm install`.
-4. Run `npm start`.
-5. Open `http://localhost:3000`.
-
-Never commit `.env` or put the key in `public/index.html`.
-
-## Configuration
-- `GEMINI_API_KEY`: required secret.
-- `GEMINI_MODEL`: optional; defaults to `gemini-3.8-flash`.
-- `PORT`: optional; defaults to `3000`.
-
-The app uses the Gemini Interactions API. It saves the returned interaction ID with each chat in the browser and sends it back to continue the conversation. Starting a new PEAK chat starts a new Gemini conversation.
-
-## Deployment
-This project needs a Node.js host. GitHub Pages can host static files only and cannot run `server.js`. On a Node.js hosting provider, deploy this folder, set the start command to `npm start`, and add `GEMINI_API_KEY` as a server-side environment variable in the host's dashboard. Do not upload `.env`.
-
-The API endpoint has a basic per-IP request limit. For a public launch, add user authentication, stronger abuse protection, usage monitoring, and spending/quota alerts.
+ PEAK AI – bản nâng cấp đa phương thức (thử nghiệm)
+Tính năng được bổ sung
+Chat văn bản với Gemini.
+Gửi ảnh PNG/JPG/WEBP, PDF, TXT, CSV để Gemini phân tích.
+Gửi DOCX: trình duyệt trích xuất văn bản từ Word rồi gửi cho Gemini (không giữ định dạng biểu đồ/ảnh nhúng).
+Tạo ảnh qua Gemini Interactions API (`GEMINI_IMAGE_MODEL`).
+Voice thời gian thực qua Gemini Live API với ephemeral token; API key thật chỉ ở máy chủ.
+Cấu hình
+Giữ `GEMINI_API_KEY` ở biến môi trường của Render, không đưa vào GitHub hoặc HTML.
+Biến tùy chọn:
+`GEMINI_MODEL` (mặc định `gemini-2.5-flash`)
+`GEMINI_IMAGE_MODEL` (mặc định `gemini-3.1-flash-image`)
+`GEMINI_LIVE_MODEL` (mặc định `models/gemini-3.8-live`)
+Triển khai
+Build command: `npm install`
+Start command: `npm run start`
+Ứng dụng phục vụ `public/index.html`.
+Giới hạn và lưu ý
+Tệp gửi trực tiếp giới hạn khoảng 17 MB để tránh vượt giới hạn JSON/base64 của máy chủ.
+DOCX cần tải JSZip từ CDN; cần kết nối Internet. Tài liệu Word được trích xuất thành văn bản, không bảo toàn bố cục.
+Gemini Live và model tạo ảnh có hạn mức/quyền truy cập riêng. Model tạo ảnh Gemini 3.1 Flash Image hiện không có mức miễn phí tiêu chuẩn theo bảng giá của Google; không bật thanh toán nếu chưa được người giám hộ đồng ý.
+Voice cần trình duyệt hỗ trợ micro và kết nối WebSocket; nên kiểm tra trong môi trường triển khai thật. Mã token Live là mã ngắn hạn.
+Đây là bản tích hợp thử nghiệm. Các API Google có thể thay đổi; sau khi deploy cần thử từng tính năng và xem Render Logs nếu có lỗi.
